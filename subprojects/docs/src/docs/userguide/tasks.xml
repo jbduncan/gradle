@@ -631,6 +631,12 @@
                     </tr>
 
                     <tr>
+                        <td><literal>@<apilink class="org.gradle.api.tasks.Destroys"/></literal></td>
+                        <td><literal>File</literal > or <literal>Iterable&lt;File&gt;</literal>*</td>
+                        <td>Specifies one or more files that are removed by this task.</td>
+                    </tr>
+
+                    <tr>
                         <td><literal>@<apilink class="org.gradle.api.tasks.Nested"/></literal></td>
                         <td>Any custom type</td>
                         <td>A custom type that may not implement <literal>Serializable</literal> but does
@@ -768,6 +774,9 @@
                         <listitem>
                             <apilink class="org.gradle.api.Task" method="getOutputs()"/> of type <apilink class="org.gradle.api.tasks.TaskOutputs"/>
                         </listitem>
+                        <listitem>
+                            <apilink class="org.gradle.api.Task" method="getDestroys()"/> of type <apilink class="org.gradle.api.tasks.TaskDestroys"/>
+                        </listitem>
                     </itemizedlist>
                     <para>These objects have methods that allow you to specify files, directories and
                         values which constitute the task’s inputs and outputs. In fact, the runtime API
@@ -802,6 +811,12 @@
                         The only difference is that the <literal>file()</literal>, <literal>files()</literal>,
                         <literal>dir()</literal> and <literal>dirs()</literal> methods don’t validate
                         the type of file object at the given path (file or directory), unlike the annotations.
+                    </para>
+                    <para>The files that a task removes can be specified through the methods on
+                        <literal>destroys</literal>.  For example, both individual files and directories
+                        can be specified using the <literal>destroys.file()</literal> method, while a
+                        collection of files can be specified using the <literal>destroy.files()</literal>
+                        method.
                     </para>
                     <para>One notable difference between the runtime API and the annotations is the
                         lack of a method that corresponds directly to <literal>@Nested</literal>.
@@ -954,7 +969,7 @@
                 </section>
                 <section id="sec:task_input_output_continuous_build">
                     <title>Continuous build</title>
-                    <para>One last benefit of defining task inputs and outputs is continuous build. Since
+                    <para>Another benefit of defining task inputs and outputs is continuous build. Since
                         Gradle knows what files a task depends on, it can automatically run a task again
                         if any of its inputs change. By activating continuous build when you run Gradle -
                         through the <literal>--continuous</literal> or <literal>-t</literal> options - you
@@ -962,6 +977,22 @@
                         the requested tasks when it encounters such changes.
                     </para>
                     <para>You can find out more about this feature in <xref linkend="continuous_build"/>.
+                    </para>
+                </section>
+                <section id="sec:task_input_output_parallelism">
+                    <title>Task parallelism</title>
+                    <para>One last benefit of defining task inputs and outputs is that Gradle can use this
+                        information to make decisions about how to run tasks when the "--parallel" option is used.
+                        For instance, Gradle will inspect the outputs of tasks when selecting the
+                        next task to run and will avoid concurrent execution of tasks that write to the same
+                        output directory.  Similarly, Gradle will use the information about what files a task
+                        destroys (e.g. specified by the <literal>Destroys</literal> annotation) and avoid
+                        running a task that removes a set of files while another task is running that consumes or creates
+                        those same files (and vice versa).  It can also determine that a task that creates a set of files has already
+                        run and that a task that consumes those files has yet to run and will avoid running a task
+                        that removes those files in between.  By providing task input and output information
+                        in this way, Gradle can infer creation/consumption/destruction relationships between tasks
+                        and can ensure that task execution does not violate those relationships.
                     </para>
                 </section>
             </section>
