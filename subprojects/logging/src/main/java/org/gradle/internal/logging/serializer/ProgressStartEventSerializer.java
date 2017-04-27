@@ -18,16 +18,16 @@ package org.gradle.internal.logging.serializer;
 
 import org.gradle.internal.logging.events.OperationIdentifier;
 import org.gradle.internal.logging.events.ProgressStartEvent;
-import org.gradle.internal.progress.BuildOperationType;
+import org.gradle.internal.logging.progress.BuildOperationType;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
-    private final Serializer<BuildOperationType> buildOperationTypeSerializer;
+    private final BuildOperationType[] buildOperationTypes;
 
     public ProgressStartEventSerializer(Serializer<BuildOperationType> buildOperationTypeSerializer) {
-        this.buildOperationTypeSerializer = buildOperationTypeSerializer;
+        buildOperationTypes = BuildOperationType.values();
     }
 
     @Override
@@ -51,7 +51,13 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             encoder.writeBoolean(true);
             encoder.writeSmallLong(((OperationIdentifier) event.getBuildOperationId()).getId());
         }
-        buildOperationTypeSerializer.write(encoder, event.getBuildOperationType());
+        if (event.getParentBuildOperationId() == null) {
+            encoder.writeBoolean(false);
+        } else {
+            encoder.writeBoolean(true);
+            encoder.writeSmallLong(((OperationIdentifier) event.getParentBuildOperationId()).getId());
+        }
+        encoder.writeInt(event.getBuildOperationType().ordinal());
     }
 
     @Override
@@ -65,7 +71,8 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
         String loggingHeader = decoder.readNullableString();
         String status = decoder.readString();
         Object buildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
-        BuildOperationType buildOperationType = buildOperationTypeSerializer.read(decoder);
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, buildOperationType);
+        Object parentBuildOperationId = decoder.readBoolean() ? new OperationIdentifier(decoder.readSmallLong()) : null;
+        BuildOperationType buildOperationType = buildOperationTypes[decoder.readInt()];
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, timestamp, category, description, shortDescription, loggingHeader, status, buildOperationId, parentBuildOperationId, buildOperationType);
     }
 }

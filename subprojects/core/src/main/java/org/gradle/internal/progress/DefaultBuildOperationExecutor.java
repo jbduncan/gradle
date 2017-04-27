@@ -169,15 +169,13 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
             Throwable failure = null;
             DefaultBuildOperationContext context = new DefaultBuildOperationContext();
             try {
-                ProgressLogger progressLogger = maybeStartProgressLogging(currentOperation);
+                ProgressLogger progressLogger = createProgressLogger(currentOperation);
 
                 LOGGER.debug("Build operation '{}' started", descriptor.getDisplayName());
                 try {
                     worker.execute(buildOperation, context);
                 } finally {
-                    if (progressLogger != null) {
-                        progressLogger.completed();
-                    }
+                    progressLogger.completed();
                 }
                 assertParentRunning("Parent operation (%2$s) completed before this operation (%1$s).", descriptor, parent);
             } catch (Throwable t) {
@@ -217,21 +215,10 @@ public class DefaultBuildOperationExecutor implements BuildOperationExecutor, St
         }
     }
 
-    @Nullable
-    private ProgressLogger maybeStartProgressLogging(DefaultBuildOperationState currentOperation) {
-        if (providesProgressLogging(currentOperation)) {
-            ProgressLogger progressLogger = progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, currentOperation.getDescription());
-            progressLogger.setDescription(currentOperation.getDescription().getDisplayName());
-            progressLogger.setShortDescription(currentOperation.getDescription().getProgressDisplayName());
-            progressLogger.started();
-            return progressLogger;
-        } else {
-            return null;
-        }
-    }
-
-    private boolean providesProgressLogging(DefaultBuildOperationState currentOperation) {
-        return currentOperation.getDescription().getProgressDisplayName() != null;
+    private ProgressLogger createProgressLogger(DefaultBuildOperationState currentOperation) {
+        BuildOperationDescriptor descriptor = currentOperation.getDescription();
+        return progressLoggerFactory.newOperation(DefaultBuildOperationExecutor.class, descriptor)
+            .start(descriptor.getDisplayName(), descriptor.getProgressDisplayName());
     }
 
     private DefaultBuildOperationState maybeStartUnmanagedThreadOperation(DefaultBuildOperationState parentState) {

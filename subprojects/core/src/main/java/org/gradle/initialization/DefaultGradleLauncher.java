@@ -33,6 +33,7 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.PhaseBuildOperationDetails;
 import org.gradle.internal.service.scopes.BuildScopeServices;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.gradle.util.CollectionUtils;
@@ -139,12 +140,7 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
 
         if (stage == null) {
-            // Evaluate init scripts
-            initScriptHandler.executeScripts(gradle);
-
-            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
-            settings = settingsLoader.findAndLoadSettings(gradle);
-
+            buildOperationExecutor.run(new InitializeBuildOperation());
             stage = Stage.Load;
         }
 
@@ -191,6 +187,30 @@ public class DefaultGradleLauncher implements GradleLauncher {
         }
     }
 
+    private class InitializeBuildOperation implements RunnableBuildOperation {
+        @Override
+        public void run(BuildOperationContext context) {
+            // Evaluate init scripts
+            initScriptHandler.executeScripts(gradle);
+
+            // Build `buildSrc`, load settings.gradle, and construct composite (if appropriate)
+            settings = settingsLoader.findAndLoadSettings(gradle);
+        }
+
+        @Override
+        public BuildOperationDescriptor.Builder description() {
+            return BuildOperationDescriptor
+                .displayName("Initialize build")
+                .progressDisplayName("INITIALIZING")
+                .details(new PhaseBuildOperationDetails() {
+                    public long getChildren() {
+                        // Must initialize at least 1 root + N included builds
+                        return 1 + gradle.getIncludedBuilds().size();
+                    }
+                });
+        }
+    }
+
     private class ConfigureBuildBuildOperation implements RunnableBuildOperation {
         @Override
         public void run(BuildOperationContext context) {
@@ -205,7 +225,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Configure build");
+            return BuildOperationDescriptor
+                .displayName("Configure build")
+                .progressDisplayName("CONFIGURING")
+                .details(new PhaseBuildOperationDetails() {
+                    public long getChildren() {
+                        return gradle.getRootProject().getAllprojects().size();
+                    }
+                });
         }
     }
 
@@ -250,7 +277,14 @@ public class DefaultGradleLauncher implements GradleLauncher {
 
         @Override
         public BuildOperationDescriptor.Builder description() {
-            return BuildOperationDescriptor.displayName("Run tasks");
+            return BuildOperationDescriptor
+                .displayName("Run tasks")
+                .progressDisplayName("EXECUTING")
+                .details(new PhaseBuildOperationDetails() {
+                    public long getChildren() {
+                        return gradle.getTaskGraph().getAllTasks().size();
+                    }
+                });
         }
     }
 

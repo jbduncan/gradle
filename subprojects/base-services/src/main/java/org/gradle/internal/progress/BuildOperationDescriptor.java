@@ -26,15 +26,13 @@ public class BuildOperationDescriptor {
     private final Object id;
     private final Object parentId;
     private final String displayName;
-    private final BuildOperationType operationType;
     private final String name;
     private final String progressDisplayName;
     private final Object details;
 
-    protected BuildOperationDescriptor(Object id, Object parentId, BuildOperationType operationType, String name, String displayName, String progressDisplayName, Object details) {
+    protected BuildOperationDescriptor(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
         this.id = id;
         this.parentId = parentId;
-        this.operationType = operationType;
         this.name = name;
         this.displayName = displayName;
         this.progressDisplayName = progressDisplayName;
@@ -43,18 +41,6 @@ public class BuildOperationDescriptor {
 
     public Object getId() {
         return id;
-    }
-
-    /**
-     * The parent for the operation, if any. When null, the operation of the current thread is used.
-     */
-    @Nullable
-    public Object getParentId() {
-        return parentId;
-    }
-
-    public BuildOperationType getOperationType() {
-        return operationType;
     }
 
     /**
@@ -93,6 +79,14 @@ public class BuildOperationDescriptor {
         return details;
     }
 
+    /**
+     * The parent for the operation, if any. When null, the operation of the current thread is used.
+     */
+    @Nullable
+    public Object getParentId() {
+        return parentId;
+    }
+
     public static Builder displayName(String displayName) {
         return new Builder(displayName);
     }
@@ -103,16 +97,10 @@ public class BuildOperationDescriptor {
         private String progressDisplayName;
         private Object details;
         private BuildOperationState parent;
-        private BuildOperationType operationType = BuildOperationType.UNCATEGORIZED;
 
         private Builder(String displayName) {
             this.displayName = displayName;
             this.name = displayName;
-        }
-
-        public Builder operationType(BuildOperationType operationType) {
-            this.operationType = operationType;
-            return this;
         }
 
         public Builder name(String name) {
@@ -149,7 +137,7 @@ public class BuildOperationDescriptor {
         }
 
         BuildOperationInternal build(@Nullable Object id, @Nullable Object defaultParentId) {
-            return new BuildOperationInternal(id, parent == null ? defaultParentId : parent.getId(), operationType, name, displayName, progressDisplayName, details);
+            return new BuildOperationInternal(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details);
         }
     }
 }

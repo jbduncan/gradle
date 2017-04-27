@@ -24,7 +24,7 @@ import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
-import org.gradle.internal.progress.BuildOperationType;
+import org.gradle.internal.logging.progress.BuildOperationType;
 
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -142,7 +142,7 @@ public class GroupedBuildOperationRenderer extends BatchOutputEventListener {
     }
 
     private boolean isTaskExecutionProgressStartEvent(ProgressStartEvent event) {
-        return BuildOperationType.TRANSFORM == event.getBuildOperationType();
+        return BuildOperationType.PHASE == event.getBuildOperationType();
     }
 
     private void forwardEvent(OutputEvent event) {

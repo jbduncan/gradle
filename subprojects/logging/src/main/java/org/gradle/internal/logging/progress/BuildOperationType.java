@@ -13,8 +13,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.internal.progress;
+package org.gradle.internal.logging.progress;
+
+import org.gradle.internal.progress.BuildOperationDescriptor;
+import org.gradle.internal.progress.PhaseBuildOperationDetails;
 
 public enum BuildOperationType {
-    TRANSFORM, UNCATEGORIZED
+    PHASE, UNCATEGORIZED;
+
+    // TODO(ew): BuildOperationDetails details after #1902 is merged
+    static BuildOperationType fromDescriptor(BuildOperationDescriptor buildOperationDescriptor) {
+        if (buildOperationDescriptor.getDetails() instanceof PhaseBuildOperationDetails) {
+            return PHASE;
+        } else {
+            return UNCATEGORIZED;
+        }
+    }
 }

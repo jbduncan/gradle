@@ -32,7 +32,7 @@ import org.gradle.internal.logging.serializer.ProgressStartEventSerializer;
 import org.gradle.internal.logging.serializer.SpanSerializer;
 import org.gradle.internal.logging.serializer.StyledTextOutputEventSerializer;
 import org.gradle.internal.logging.text.StyledTextOutput;
-import org.gradle.internal.progress.BuildOperationType;
+import org.gradle.internal.logging.progress.BuildOperationType;
 import org.gradle.internal.serialize.BaseSerializerFactory;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;

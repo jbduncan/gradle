@@ -25,8 +25,8 @@ import org.gradle.api.Nullable;
  * */
 public final class BuildOperationInternal extends BuildOperationDescriptor {
 
-    protected BuildOperationInternal(Object id, Object parentId, BuildOperationType operationType, String name, String displayName, String progressDisplayName, Object details) {
-        super(id, parentId, operationType, name, displayName, progressDisplayName, details);
+    protected BuildOperationInternal(Object id, Object parentId, String name, String displayName, String progressDisplayName, Object details) {
+        super(id, parentId, name, displayName, progressDisplayName, details);
     }
 
     /**

@@ -14,9 +14,9 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.progress;
+package org.gradle.internal.logging.format;
 
-public class ProgressBar implements ProgressFormatter {
+public class ProgressBarFormatter {
     private final String progressBarPrefix;
     private int progressBarWidth;
     private final String progressBarSuffix;
@@ -26,7 +26,7 @@ public class ProgressBar implements ProgressFormatter {
     private int total;
     private String suffix;
 
-    public ProgressBar(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int total) {
+    public ProgressBarFormatter(String progressBarPrefix, int progressBarWidth, String progressBarSuffix, char completeChar, char incompleteChar, String suffix, int total) {
         this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
         this.progressBarSuffix = progressBarSuffix;

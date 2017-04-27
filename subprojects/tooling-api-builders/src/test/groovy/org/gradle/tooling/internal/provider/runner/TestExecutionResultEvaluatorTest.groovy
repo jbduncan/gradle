@@ -23,7 +23,7 @@ import org.gradle.api.internal.tasks.testing.TestDescriptorInternal
 import org.gradle.api.tasks.testing.TestExecutionException
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.internal.progress.BuildOperationInternal
-import org.gradle.internal.progress.BuildOperationType
+import org.gradle.internal.logging.progress.BuildOperationType
 import org.gradle.internal.progress.OperationStartEvent
 import org.gradle.tooling.internal.protocol.test.InternalJvmTestRequest
 import org.gradle.tooling.internal.provider.TestExecutionRequestAction

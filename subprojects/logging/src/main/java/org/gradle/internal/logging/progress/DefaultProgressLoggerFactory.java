@@ -22,7 +22,6 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.progress.BuildOperationDescriptor;
-import org.gradle.internal.progress.BuildOperationType;
 import org.gradle.internal.time.TimeProvider;
 import org.gradle.util.GUtil;
 
@@ -153,7 +152,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 loggingHeader,
                 toStatus(status),
                 getBuildOperationId(),
-                buildOperationDescriptor == null ? BuildOperationType.UNCATEGORIZED : buildOperationDescriptor.getOperationType());
+                getParentBuildOperationId(),
+                BuildOperationType.fromDescriptor(buildOperationDescriptor));
             listener.started(progressStartEvent);
         }
 
@@ -203,6 +203,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
 
         private Object getBuildOperationId() {
             return buildOperationDescriptor == null ? null : buildOperationDescriptor.getId();
+        }
+
+        private Object getParentBuildOperationId() {
+            return buildOperationDescriptor == null ? null : buildOperationDescriptor.getParentId();
         }
     }
 }

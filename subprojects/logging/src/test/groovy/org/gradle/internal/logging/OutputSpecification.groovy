@@ -21,7 +21,7 @@ import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.progress.BuildOperationType
+import org.gradle.internal.logging.progress.BuildOperationType
 import org.gradle.util.TextUtil
 import spock.lang.Specification
 

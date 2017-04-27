@@ -17,9 +17,7 @@ package org.gradle.internal.logging.serializer
 
 import org.gradle.internal.logging.events.OperationIdentifier
 import org.gradle.internal.logging.events.ProgressStartEvent
-import org.gradle.internal.progress.BuildOperationType
-import org.gradle.internal.serialize.BaseSerializerFactory
-import org.gradle.internal.serialize.Serializer
+import org.gradle.internal.logging.progress.BuildOperationType
 import spock.lang.Subject
 
 @Subject(ProgressStartEventSerializer)
@@ -29,16 +27,11 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
     private static final String DESCRIPTION = "description"
     private static final OperationIdentifier OPERATION_ID = new OperationIdentifier(1234L)
 
-    ProgressStartEventSerializer serializer
-    def setup() {
-        BaseSerializerFactory serializerFactory = new BaseSerializerFactory()
-        Serializer<BuildOperationType> buildOperationTypeSerializer = serializerFactory.getSerializerFor(BuildOperationType.class)
-        serializer = new ProgressStartEventSerializer(buildOperationTypeSerializer)
-    }
+    ProgressStartEventSerializer serializer = new ProgressStartEventSerializer()
 
     def "can serialize ProgressStartEvent messages"() {
         given:
-        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "short", "header", "status", new OperationIdentifier(42L), BuildOperationType.TRANSFORM)
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, "short", "header", "status", new OperationIdentifier(42L), new OperationIdentifier(41L), BuildOperationType.PHASE)
 
         when:
         def result = serialize(event, serializer)
@@ -54,7 +47,8 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.loggingHeader == "header"
         result.status == "status"
         result.buildOperationId == new OperationIdentifier(42L)
-        result.buildOperationType == BuildOperationType.TRANSFORM
+        result.parentProgressOperationId == new OperationIdentifier(41L)
+        result.buildOperationType == BuildOperationType.PHASE
     }
 
     def "can serialize ProgressStartEvent messages with empty fields"() {
@@ -75,12 +69,13 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         result.loggingHeader == null
         result.status == ""
         result.buildOperationId == null
+        result.parentProgressOperationId == null
         result.buildOperationType == event.buildOperationType
     }
 
     def "can serialize build operation ids with large long values"() {
         given:
-        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", new OperationIdentifier(42_000_000_000_000L), BuildOperationType.UNCATEGORIZED)
+        def event = new ProgressStartEvent(new OperationIdentifier(1_000_000_000_000L), null, TIMESTAMP, CATEGORY, DESCRIPTION, null, null, "", new OperationIdentifier(42_000_000_000_000L), null, BuildOperationType.UNCATEGORIZED)
 
         when:
         def result = serialize(event, serializer)

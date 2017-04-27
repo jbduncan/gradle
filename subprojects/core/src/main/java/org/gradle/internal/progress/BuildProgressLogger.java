@@ -17,6 +17,7 @@
 package org.gradle.internal.progress;
 
 import com.google.common.annotations.VisibleForTesting;
+import org.gradle.internal.logging.format.ProgressBarFormatter;
 import org.gradle.internal.logging.progress.ProgressLogger;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 
@@ -96,8 +97,8 @@ public class BuildProgressLogger implements LoggerProvider {
     }
 
     @VisibleForTesting
-    public ProgressBar newProgressBar(String initialSuffix, int totalWorkItems) {
-        return new ProgressBar(PROGRESS_BAR_PREFIX,
+    public ProgressBarFormatter newProgressBar(String initialSuffix, int totalWorkItems) {
+        return new ProgressBarFormatter(PROGRESS_BAR_PREFIX,
             PROGRESS_BAR_WIDTH,
             PROGRESS_BAR_SUFFIX,
             PROGRESS_BAR_COMPLETE_CHAR,
