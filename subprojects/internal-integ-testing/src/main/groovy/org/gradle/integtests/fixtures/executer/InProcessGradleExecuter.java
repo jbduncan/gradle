@@ -46,6 +46,7 @@ import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
+import org.gradle.internal.scripts.DefaultScriptingLanguages;
 import org.gradle.launcher.Main;
 import org.gradle.launcher.cli.ExecuteBuildAction;
 import org.gradle.launcher.cli.Parameters;
@@ -257,7 +258,7 @@ public class InProcessGradleExecuter extends AbstractGradleExecuter {
         startParameter.setShowStacktrace(ShowStacktrace.ALWAYS);
 
         CommandLineParser parser = new CommandLineParser();
-        ParametersConverter parametersConverter = new ParametersConverter();
+        ParametersConverter parametersConverter = new ParametersConverter(new DefaultScriptingLanguages());
         parametersConverter.configure(parser);
         final Parameters parameters = new Parameters(startParameter);
         parametersConverter.convert(parser.parse(getAllArgs()), parameters);

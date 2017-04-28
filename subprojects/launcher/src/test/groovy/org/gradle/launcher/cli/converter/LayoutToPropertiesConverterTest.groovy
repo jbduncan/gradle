@@ -29,7 +29,7 @@ class LayoutToPropertiesConverterTest extends Specification {
 
     @Rule SetSystemProperties sysProperties = new SetSystemProperties()
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider()
-    def converter = new LayoutToPropertiesConverter()
+    def converter = new LayoutToPropertiesConverter([])
     BuildLayoutParameters layout
     Map<String, String> props = new HashMap<String, String>()
 

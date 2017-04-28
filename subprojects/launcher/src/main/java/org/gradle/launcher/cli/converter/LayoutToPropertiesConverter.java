@@ -24,6 +24,7 @@ import org.gradle.initialization.BuildLayoutParameters;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.launcher.daemon.configuration.GradleProperties;
+import org.gradle.scripts.ScriptingLanguage;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -34,6 +35,13 @@ import java.util.Map;
 import java.util.Properties;
 
 public class LayoutToPropertiesConverter {
+
+    private final Iterable<ScriptingLanguage> scriptingLanguages;
+
+    public LayoutToPropertiesConverter(Iterable<ScriptingLanguage> scriptingLanguages) {
+        this.scriptingLanguages = scriptingLanguages;
+    }
+
     public Map<String, String> convert(BuildLayoutParameters layout, Map<String, String> properties) {
         configureFromBuildDir(layout.getSearchDir(), layout.getSearchUpwards(), properties);
         configureFromGradleUserHome(layout.getGradleUserHomeDir(), properties);
@@ -57,7 +65,7 @@ public class LayoutToPropertiesConverter {
     }
 
     private void configureFromBuildDir(File currentDir, boolean searchUpwards, Map<String, String> result) {
-        BuildLayoutFactory factory = new BuildLayoutFactory();
+        BuildLayoutFactory factory = new BuildLayoutFactory(scriptingLanguages);
         BuildLayout layout = factory.getLayoutFor(currentDir, searchUpwards);
         maybeConfigureFrom(new File(layout.getRootDirectory(), Project.GRADLE_PROPERTIES), result);
     }

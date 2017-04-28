@@ -315,13 +315,13 @@ public class BuildScopeServices extends DefaultServiceRegistry {
             get(ProviderFactory.class));
     }
 
-    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, NestedBuildFactory nestedBuildFactory,
+    protected SettingsLoaderFactory createSettingsLoaderFactory(SettingsProcessor settingsProcessor, ScriptingLanguages scriptingLanguages, NestedBuildFactory nestedBuildFactory,
                                                                 ClassLoaderScopeRegistry classLoaderScopeRegistry, CacheRepository cacheRepository,
                                                                 BuildLoader buildLoader, BuildOperationExecutor buildOperationExecutor,
                                                                 ServiceRegistry serviceRegistry, CachedClasspathTransformer cachedClasspathTransformer,
                                                                 CachingServiceLocator cachingServiceLocator) {
         return new DefaultSettingsLoaderFactory(
-            new DefaultSettingsFinder(new BuildLayoutFactory()),
+            new DefaultSettingsFinder(new BuildLayoutFactory(scriptingLanguages)),
             settingsProcessor,
             new BuildSourceBuilder(
                 nestedBuildFactory,

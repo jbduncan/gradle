@@ -17,10 +17,20 @@ package org.gradle.initialization.layout;
 
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.resources.MissingResourceException;
+import org.gradle.scripts.ScriptingLanguage;
 
 import java.io.File;
+import java.util.ArrayList;
+import java.util.List;
 
 public class BuildLayoutFactory {
+
+    private final Iterable<ScriptingLanguage> scriptingLanguages;
+
+    public BuildLayoutFactory(Iterable<ScriptingLanguage> scriptingLanguages) {
+        this.scriptingLanguages = scriptingLanguages;
+    }
+
     /**
      * Determines the layout of the build, given a current directory and some other configuration.
      */
@@ -49,24 +59,43 @@ public class BuildLayoutFactory {
     }
 
     BuildLayout getLayoutFor(File currentDir, File stopAt) {
-        File settingsFile = new File(currentDir, Settings.DEFAULT_SETTINGS_FILE);
-        if (settingsFile.isFile()) {
+        List<String> supportedSettingsFilenames = getSupportedSettingsFilenames();
+        File settingsFile = findExistingSettingsFileIn(currentDir, supportedSettingsFilenames);
+        if (settingsFile != null) {
             return layout(currentDir, currentDir, settingsFile);
         }
         for (File candidate = currentDir.getParentFile(); candidate != null && !candidate.equals(stopAt); candidate = candidate.getParentFile()) {
-            settingsFile = new File(candidate, Settings.DEFAULT_SETTINGS_FILE);
-            if (settingsFile.isFile()) {
-                return layout(candidate, candidate, settingsFile);
+            settingsFile = findExistingSettingsFileIn(candidate, supportedSettingsFilenames);
+            if (settingsFile == null) {
+                settingsFile = findExistingSettingsFileIn(new File(candidate, "master"), supportedSettingsFilenames);
             }
-            settingsFile = new File(candidate, "master/" + Settings.DEFAULT_SETTINGS_FILE);
-            if (settingsFile.isFile()) {
+            if (settingsFile != null) {
                 return layout(candidate, settingsFile.getParentFile(), settingsFile);
             }
         }
-        return layout(currentDir, currentDir, settingsFile);
+        return layout(currentDir, currentDir, new File(currentDir, Settings.DEFAULT_SETTINGS_FILE));
     }
 
     private BuildLayout layout(File rootDir, File settingsDir, File settingsFile) {
         return new BuildLayout(rootDir, settingsDir, settingsFile);
+    }
+
+    private List<String> getSupportedSettingsFilenames() {
+        List<String> supported = new ArrayList<String>();
+        supported.add(Settings.DEFAULT_SETTINGS_FILE);
+        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
+            supported.add("settings" + scriptingLanguage.getExtension());
+        }
+        return supported;
+    }
+
+    private File findExistingSettingsFileIn(File directory, List<String> supportedSettingsFilenames) {
+        for (String settingsFilename : supportedSettingsFilenames) {
+            File candidate = new File(directory, settingsFilename);
+            if (candidate.isFile()) {
+                return candidate;
+            }
+        }
+        return null;
     }
 }
