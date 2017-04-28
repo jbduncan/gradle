@@ -167,6 +167,8 @@ import org.gradle.profile.ProfileListener;
 
 import java.util.List;
 
+import static org.gradle.configuration.ScriptPluginFactorySelector.defaultProviderInstantiatorFor;
+
 /**
  * Contains the singleton services for a single build invocation.
  */
@@ -292,11 +294,17 @@ public class BuildScopeServices extends DefaultServiceRegistry {
 
     protected ScriptPluginFactory createScriptPluginFactory(ScriptingLanguages scriptingLanguages, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
         DefaultScriptPluginFactory defaultScriptPluginFactory = defaultScriptPluginFactory();
-        ScriptPluginFactorySelector.ProviderInstantiator instantiator = new ScriptPluginFactorySelector.DefaultProviderInstantiator(instantiatorFactory.inject(this));
-        DependencyInjectingServiceLoader serviceLoader = new DependencyInjectingServiceLoader(this);
-        ScriptPluginFactorySelector scriptPluginFactorySelector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, scriptingLanguages, instantiator, serviceLoader, buildOperationExecutor);
+        ScriptPluginFactorySelector scriptPluginFactorySelector = scriptPluginFactorySelectorFor(defaultScriptPluginFactory, scriptingLanguages, instantiatorFactory, buildOperationExecutor);
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
+    }
+
+    private ScriptPluginFactorySelector scriptPluginFactorySelectorFor(DefaultScriptPluginFactory defaultScriptPluginFactory, ScriptingLanguages scriptingLanguages, InstantiatorFactory instantiatorFactory, BuildOperationExecutor buildOperationExecutor) {
+        return new ScriptPluginFactorySelector(
+            defaultScriptPluginFactory,
+            scriptingLanguages,
+            defaultProviderInstantiatorFor(instantiatorFactory.inject(this)),
+            new DependencyInjectingServiceLoader(this), buildOperationExecutor);
     }
 
     private DefaultScriptPluginFactory defaultScriptPluginFactory() {

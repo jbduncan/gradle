@@ -42,6 +42,25 @@ import org.gradle.scripts.ScriptingLanguage;
  */
 public class ScriptPluginFactorySelector implements ScriptPluginFactory {
 
+    public static ProviderInstantiator defaultProviderInstantiatorFor(final Instantiator instantiator) {
+        return new ProviderInstantiator() {
+
+            @Override
+            public ScriptPluginFactory instantiate(String providerClassName) {
+                Class<?> providerClass = loadProviderClass(providerClassName);
+                return (ScriptPluginFactory) instantiator.newInstance(providerClass);
+            }
+
+            private Class<?> loadProviderClass(String providerClassName) {
+                try {
+                    return getClass().getClassLoader().loadClass(providerClassName);
+                } catch (ClassNotFoundException e) {
+                    throw UncheckedException.throwAsUncheckedException(e);
+                }
+            }
+        };
+    }
+
     /**
      * Scripting language ScriptPluginFactory instantiator.
      *
@@ -84,7 +103,7 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     }
 
     private ScriptPluginFactory findScriptPluginFactoryFor(String fileName) {
-        for (ScriptingLanguage scriptingLanguage: scriptingLanguages) {
+        for (ScriptingLanguage scriptingLanguage : scriptingLanguages) {
             if (fileName.endsWith("." + scriptingLanguage.getExtension())) {
                 ScriptPluginFactory scriptPluginFactory = scriptPluginFactoryFor(scriptingLanguage);
                 if (scriptPluginFactory != null) {
@@ -109,27 +128,5 @@ public class ScriptPluginFactorySelector implements ScriptPluginFactory {
     // TODO:pm Remove old scripting provider SPI support
     private Iterable<ScriptPluginFactoryProvider> scriptPluginFactoryProviders() {
         return serviceLoader.load(ScriptPluginFactoryProvider.class, getClass().getClassLoader());
-    }
-
-    public static class DefaultProviderInstantiator implements ProviderInstantiator {
-        private final Instantiator instantiator;
-
-        public DefaultProviderInstantiator(Instantiator instantiator) {
-            this.instantiator = instantiator;
-        }
-
-        @Override
-        public ScriptPluginFactory instantiate(String providerClassName) {
-            Class<?> providerClass = loadProviderClass(providerClassName);
-            return (ScriptPluginFactory) instantiator.newInstance(providerClass);
-        }
-
-        private Class<?> loadProviderClass(String providerClassName) {
-            try {
-                return getClass().getClassLoader().loadClass(providerClassName);
-            } catch (ClassNotFoundException e) {
-                throw UncheckedException.throwAsUncheckedException(e);
-            }
-        }
     }
 }
