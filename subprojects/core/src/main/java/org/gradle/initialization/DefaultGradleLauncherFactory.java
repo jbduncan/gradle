@@ -40,8 +40,6 @@ import org.gradle.internal.featurelifecycle.ScriptUsageLocationReporter;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.progress.BuildProgressFilter;
-import org.gradle.internal.progress.BuildProgressLogger;
 import org.gradle.internal.progress.LoggerProvider;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.scan.BuildScanRequest;
@@ -60,16 +58,12 @@ import java.util.List;
 
 public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
     private final GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry;
-    private final BuildProgressLogger buildProgressLogger;
     private DefaultGradleLauncher rootBuild;
 
     public DefaultGradleLauncherFactory(
         ListenerManager listenerManager, ProgressLoggerFactory progressLoggerFactory, GradleUserHomeScopeServiceRegistry userHomeDirServiceRegistry) {
         this.userHomeDirServiceRegistry = userHomeDirServiceRegistry;
 
-        // Register default loggers
-        buildProgressLogger = new BuildProgressLogger(progressLoggerFactory);
-        listenerManager.addListener(new BuildProgressFilter(buildProgressLogger));
         listenerManager.useLogger(new ProjectEvaluationLogger(progressLoggerFactory));
         listenerManager.useLogger(new DependencyResolutionLogger(progressLoggerFactory));
     }
@@ -121,7 +115,7 @@ public class DefaultGradleLauncherFactory implements GradleLauncherFactory {
 
         ListenerManager listenerManager = serviceRegistry.get(ListenerManager.class);
 
-        LoggerProvider loggerProvider = (parent == null) ? buildProgressLogger : LoggerProvider.NO_OP;
+        LoggerProvider loggerProvider = LoggerProvider.NO_OP;
         listenerManager.useLogger(new TaskExecutionLogger(serviceRegistry.get(ProgressLoggerFactory.class), loggerProvider));
         if (parent == null) {
             listenerManager.useLogger(new BuildLogger(Logging.getLogger(BuildLogger.class), serviceRegistry.get(StyledTextOutputFactory.class), startParameter, requestMetaData));

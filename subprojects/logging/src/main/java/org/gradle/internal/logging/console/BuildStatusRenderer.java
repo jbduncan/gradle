@@ -56,6 +56,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     private final Object lock = new Object();
     private String currentBuildStatus;
     private OperationIdentifier rootOperationId;
+    private Object currentPhaseBuildOperationId;
     private long buildStartTimestamp;
     private ScheduledFuture future;
     private ProgressBarFormatter progressBarFormatter;
@@ -90,9 +91,7 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
     @Override
     public void onOutput(OutputEvent event) {
         if (event instanceof ProgressStartEvent) {
-            ProgressStartEvent startEvent = (ProgressStartEvent) event;
-            // if it has no parent ID, assign this operation as the root operation
-
+            onStart((ProgressStartEvent) event);
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             if (completeEvent.getProgressOperationId().equals(rootOperationId)) {
@@ -158,15 +157,14 @@ public class BuildStatusRenderer extends BatchOutputEventListener {
             rootOperationId = startEvent.getProgressOperationId();
             progressBarFormatter = newProgressBar("INITIALIZING", 1);
             currentBuildStatus = progressBarFormatter.getProgress();
-        } else if (startEvent.getBuildOperationType() != null && startEvent.getBuildOperationType() == BuildOperationType.PHASE) {
-            progressBarFormatter = newProgressBar(startEvent.getShortDescription(), startEvent.)
-        } else {
-
+        } else if (startEvent.getBuildOperationType() == BuildOperationType.PHASE) {
+            // TODO(ew): serialize PhaseBuildOperationDetails info
+            progressBarFormatter = newProgressBar(startEvent.getShortDescription(), 0);
+            currentBuildStatus = progressBarFormatter.getProgress();
+            currentPhaseBuildOperationId = startEvent.getBuildOperationId();
+        } else if (startEvent.getParentBuildOperationId() != null && startEvent.getParentBuildOperationId() == currentPhaseBuildOperationId) {
+            currentBuildStatus = progressBarFormatter.incrementAndGetProgress();
         }
-    }
-
-    private void onPhaseChange(ProgressStartEvent startEvent) {
-
     }
 
     @VisibleForTesting
